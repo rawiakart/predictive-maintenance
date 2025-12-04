@@ -6,19 +6,15 @@ import pandas as pd
 import joblib
 from keras.models import load_model
 
-model = load_model("model/rul_lstm_model.keras")
-scaler = joblib.load("model/scaler.save")
+model = load_model("rul_lstm_model.keras")
+scaler = joblib.load("scaler.save")
 
 app = FastAPI()
 
-SEQ_LEN = 30
+SEQ_LEN = 24  # Using past 24 time steps for prediction
 
 
-"""engineered_features = ['temperature','vibration','temperature_roll_mean',
-                       'vibration_roll_mean','temperature_lag1','vibration_lag1',
-                       'pressure_roll_mean','pressure','pressure_lag1','temperature_lag2',
-                       'vibration_lag2','pressure_lag2','vibration_min','pressure_lag3',
-                       'temperature_lag3','vibration_lag3','failure_event']"""
+
 engineered_features = [
     # Raw signals
     'temperature', 'vibration', 'pressure',
@@ -71,9 +67,9 @@ def predict_rul_all(data: list[EquipmentData]):
 
 
         for lag in [1, 2, 3]:
-            eq_df[f"temperature_lag{lag}"] = eq_df["temperature"].shift(lag).bfill()
-            eq_df[f"vibration_lag{lag}"] = eq_df["vibration"].shift(lag).bfill()
-            eq_df[f"pressure_lag{lag}"] = eq_df["pressure"].shift(lag).bfill()
+            eq_df[f"temperature_lag{lag}"] = eq_df["temperature"].shift(lag).fillna(eq_df.mean())
+            eq_df[f"vibration_lag{lag}"] = eq_df["vibration"].shift(lag).fillna(eq_df.mean())
+            eq_df[f"pressure_lag{lag}"] = eq_df["pressure"].shift(lag).fillna(eq_df.mean())
         
         eq_df['vibration_slope'] = eq_df.groupby('equipment_id')['vibration_roll_mean'].transform(lambda x: x.diff().fillna(0))
         eq_df["vibration_min"] = eq_df["vibration_roll_mean"].rolling(24, min_periods=1).min()
