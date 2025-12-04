@@ -6,10 +6,10 @@ import tensorflow as tf
 import joblib
 from keras.models import load_model
 
-model = load_model("model/rul_lstm_model.keras")
-scaler = joblib.load("model/scaler.save")
+model = load_model("rul_lstm_model.keras")
+scaler = joblib.load("scaler.save")
 
-SEQ_LEN = 30
+SEQ_LEN = 24
 engineered_features = [
     'temperature', 'vibration', 'pressure',
     'temperature_roll_mean', 'vibration_roll_mean', 'pressure_roll_mean',
@@ -49,9 +49,9 @@ for eq in df['equipment_id'].unique():
 
 
     for lag in [1, 2, 3]:
-        eq_df[f"temperature_lag{lag}"] = eq_df["temperature"].shift(lag).ffill()
-        eq_df[f"vibration_lag{lag}"] = eq_df["vibration"].shift(lag).ffill()
-        eq_df[f"pressure_lag{lag}"] = eq_df["pressure"].shift(lag).ffill()
+        eq_df[f"temperature_lag{lag}"] = eq_df["temperature"].shift(lag).fillna(eq_df.mean())
+        eq_df[f"vibration_lag{lag}"] = eq_df["vibration"].shift(lag).fillna(eq_df.mean())
+        eq_df[f"pressure_lag{lag}"] = eq_df["pressure"].shift(lag).fillna(eq_df.mean())
     
     eq_df['vibration_slope'] = eq_df.groupby('equipment_id')['vibration_roll_mean'].transform(lambda x: x.diff().fillna(0))
     eq_df["vibration_min"] = eq_df["vibration_roll_mean"].rolling(24, min_periods=1).min()
