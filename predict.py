@@ -4,10 +4,16 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 import joblib
+import os
 from keras.models import load_model
 
-model = load_model("rul_lstm_model.keras")
-scaler = joblib.load("scaler.save")
+def resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
+model = load_model(resource_path("rul_lstm_model.keras"))
+scaler = joblib.load(resource_path("scaler.save"))
 
 SEQ_LEN = 24
 engineered_features = [
