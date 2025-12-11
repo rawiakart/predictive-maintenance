@@ -91,7 +91,3 @@ def predict_rul_all(data: list[EquipmentData]):
 
     return jsonable_encoder(predictions)
     
-    
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
